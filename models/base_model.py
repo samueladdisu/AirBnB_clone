@@ -22,7 +22,6 @@ class BaseModel:
             self.id = str(uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
-            storage.new(self)
 
     def __str__(self):
         """prints the class name, id and the __dict of the instance"""
@@ -32,8 +31,7 @@ class BaseModel:
         """
         updates the public instance attribute updated_at
         """
-        setattr(self, "updated_at",  datetime.now())
-        storage.save()
+        self.updated_at = datetime.now()
 
     def to_dict(self):
         dic = {}
