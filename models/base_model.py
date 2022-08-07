@@ -1,44 +1,51 @@
 #!/usr/bin/python3
 """
-This is the base model documentation
+Base Model to be inherited
 """
-from uuid import uuid4
+import uuid
 from datetime import datetime
-from models import storage
+import models
 
 
 class BaseModel:
-    """This is the base model from which all models will come from"""
 
+    """ Base Model Representation """
     def __init__(self, *args, **kwargs):
+
+        """ Initialization with or with out kwargs
+        kwargs assumed to contain isoformatted datetime object
+        """
+        self.id = str(uuid.uuid4())
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
         if kwargs:
             for key, value in kwargs.items():
                 if key != "__class__":
-                    if key in ["created_at, updated_at"]:
-                        setattr(self, key, datetime.fromisoformat(value))
+                    if key in ["updated_at", "created_at"]:
+                        self.__dict__[key] = datetime.fromisoformat(value)
                     else:
-                        setattr(self, key, value)
+                        self.__dict__[key] = value
         else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
+            models.storage.new(self)
 
     def __str__(self):
-        """prints the class name, id and the __dict of the instance"""
-        return (f"{__class__.__name__} {self.id} {self.__dict__}")
+
+        """ String Representation """
+        return "[{}] ({}) ({})".format(self.__class__.__name__,
+                                       getattr(self, "id"), self.__dict__)
 
     def save(self):
-        """
-        updates the public instance attribute updated_at
-        """
-        self.updated_at = datetime.now()
+
+        """ save instance to file"""
+        setattr(self, "updated_at",  datetime.now())
+        models.storage.new(self)
+        models.storage.save()
 
     def to_dict(self):
-        dic = {}
-        for key, value in self.__dict__.items():
-            if key in ["updated_at", "created_at"]:
-                dic[key] = value.isoformat()
-            else:
-                dic[key] = value
+
+        """ Return Dict Representation """
+        dic = self.__dict__.copy()
+        dic["updated_at"] = dic["updated_at"].isoformat()
+        dic["created_at"] = dic["created_at"].isoformat()
         dic["__class__"] = self.__class__.__name__
         return dic

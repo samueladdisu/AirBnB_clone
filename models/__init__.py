@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" 
+"""
 init module
 """
 from models.engine import file_storage
