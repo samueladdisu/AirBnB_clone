@@ -1,51 +1,53 @@
 #!/usr/bin/python3
-"""
-Base Model to be inherited
-"""
+"""Model Base """
 import uuid
-from datetime import datetime
 import models
+from datetime import datetime
 
 
 class BaseModel:
-
-    """ Base Model Representation """
+    """class Base"""
     def __init__(self, *args, **kwargs):
-
-        """ Initialization with or with out kwargs
-        kwargs assumed to contain isoformatted datetime object
-        """
-        self.id = str(uuid.uuid4())
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
+        """ Constructor """
         if kwargs:
+            # self.__dict__ = kwargs
+            # self.created_at = datetime.strptime(self.created_at,
+            #                                     "%Y-%m-%dT%H:%M:%S.%f")
+
+            # self.updated_at = datetime.strptime(self.updated_at,
+            #                                     "%Y-%m-%dT%H:%M:%S.%f")
             for key, value in kwargs.items():
+                if key == "created_at":
+                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
+                if key == "updated_at":
+                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
                 if key != "__class__":
-                    if key in ["updated_at", "created_at"]:
-                        self.__dict__[key] = datetime.fromisoformat(value)
-                    else:
-                        self.__dict__[key] = value
+                    setattr(self, key, value)
         else:
+            self.id = str(uuid.uuid4())  # unique id
+            self.created_at = datetime.now()  # datetime when is created
+            self.updated_at = datetime.now()  # date when is updated
             models.storage.new(self)
 
     def __str__(self):
-
-        """ String Representation """
-        return "[{}] ({}) ({})".format(self.__class__.__name__,
-                                       getattr(self, "id"), self.__dict__)
+        """ print() __str__ method """
+        """" For pep8 validation"""
+        className = self.__class__.__name__
+        return "[{}] ({}) {}".format(className, self.id, self.__dict__)
 
     def save(self):
-
-        """ save instance to file"""
-        setattr(self, "updated_at",  datetime.now())
-        models.storage.new(self)
+        """ updates with the current datetime """
+        self.updated_at = datetime.now()
         models.storage.save()
 
     def to_dict(self):
+        '''returns a dictionary with all keys/value of the instance'''
+        dict_copy = self.__dict__.copy()
+        dict_copy["created_at"] = self.created_at.isoformat()
+        dict_copy["updated_at"] = self.updated_at.isoformat()
+        dict_copy['__class__'] = self.__class__.__name__
+        return dict_copy
 
-        """ Return Dict Representation """
-        dic = self.__dict__.copy()
-        dic["updated_at"] = dic["updated_at"].isoformat()
-        dic["created_at"] = dic["created_at"].isoformat()
-        dic["__class__"] = self.__class__.__name__
-        return dic
+    # @property
+    # def id(self):
+    #     return self.id
