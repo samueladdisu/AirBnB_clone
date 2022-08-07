@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-"""
-init module
-"""
-from models.engine import file_storage
+""" module models """
 
 
-storage = file_storage.FileStorage()
+from models.engine.file_storage import FileStorage
+
+classes = {'BaseModel': 'BaseModel', 'Amenity': 'Amenity', 'State': 'State',
+           'Place': 'Place', 'Review': 'Review', 'User': 'User'}
+storage = FileStorage()
 storage.reload()
