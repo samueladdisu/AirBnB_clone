@@ -1,14 +1,6 @@
 #!/usr/bin/python3
 """
-(hbnb) help
-
-Documented commands (type help <topic>):
-========================================
-EOF  help  quit
-
-(hbnb)
-(hbnb) help quit
-Quit command to exit the program
+The main console
 """
 import cmd
 import sys
@@ -16,7 +8,8 @@ import sys
 
 class HBNBCommand(cmd.Cmd):
     """command line"""
-    prompt = "(hbnb)"
+    intro = "(hbnb) help\n\nDocumented commands (type help <topic>):\n========================================\n\nEOF  help  quit\n\n(hbnb)\n(hbnb) help quit\n\nQuit command to exit the program\n"
+    prompt = "(hbnb) "
 
     def do_quit(self, arg):
         """write quit to exit"""
