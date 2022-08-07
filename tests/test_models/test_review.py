@@ -1,107 +1,79 @@
 #!/usr/bin/python3
-"""
-Test For Review
-"""
+""" Unit test Review """
 import unittest
-import datetime
+import models
 import os
-import json
-from models.engine.file_storage import FileStorage
 from models.review import Review
-storage = FileStorage()
-
-
-def setUpModule():
-    """Run before all test"""
-    print("Test Review\n")
-
-
-def tearDownModule():
-    """Run after all test"""
-    print("\nEnd of test Review")
 
 
 class TestReview(unittest.TestCase):
-    """ Test for Review"""
+    """ Test for class Review"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Create an empty file.json"""
-        os.system("touch ./file.json")
+    def test_docstring(self):
+        '''test if funcions, methods, classes
+        and modules have docstring'''
+        msj = "Módulo does not has docstring"
+        self.assertIsNotNone(models.review.__doc__, msj)  # Modules
+        msj = "Clase does not has docstring"
+        self.assertIsNotNone(Review.__doc__, msj)  # Classes
 
-    def test_uniq_id(self):
-        """Remove file.json after all test"""
+    def test_executable_file(self):
+        '''test if file has permissions u+x to execute'''
+        # Check for read access
+        is_read_true = os.access('models/review.py', os.R_OK)
+        self.assertTrue(is_read_true)
+        # Check for write access
+        is_write_true = os.access('models/review.py', os.W_OK)
+        self.assertTrue(is_write_true)
+        # Check for execution access
+        is_exec_true = os.access('models/review.py', os.X_OK)
+        self.assertTrue(is_exec_true)
 
-        obj1 = Review()
-        obj2 = Review()
-        self.assertNotEqual(obj1.id, obj2.id)
+    def test_init_Review(self):
+        """test if an object is an type Review"""
+        my_object = Review()
+        self.assertIsInstance(my_object, Review)
 
-    def test_created_updated_at(self):
-        """Testing new object will be updated"""
+    def test_id(self):
+        """ test that id is unique """
+        my_objectId = Review()
+        my_objectId1 = Review()
+        self.assertNotEqual(my_objectId.id, my_objectId1.id)
 
-        obj = Review()
-        self.assertNotEqual(obj.created_at, obj.updated_at)
-        self.assertEqual(type(obj.created_at), datetime.datetime)
-
-    def test__str__(self):
-        """Testing the string represantation"""
-
-        obj = Review()
-        obj_str = obj.__str__()
-        self.assertTrue("Review" in obj_str and
-                        "id" in obj_str and "created_at" in obj_str and
-                        "updated_at" in obj_str)
+    def test_str(self):
+        '''check if the output of str is in the specified format'''
+        my_strobject = Review()
+        _dict = my_strobject.__dict__
+        string1 = "[Review] ({}) {}".format(my_strobject.id, _dict)
+        string2 = str(my_strobject)
+        self.assertEqual(string1, string2)
 
     def test_save(self):
-        """Testing the save method work or not"""
+        """ check if date update when save """
+        my_objectupd = Review()
+        first_updated = my_objectupd.updated_at
+        my_objectupd.save()
+        second_updated = my_objectupd.updated_at
+        self.assertNotEqual(first_updated, second_updated)
 
-        obj = Review()
-        obj.save()
-        with open("file.json", encoding="utf-8") as f:
-            data = f.read()
-            self.assertTrue("updated_at" in data)
+    def test_to_dict(self):
+        '''check if to_dict returns a dictionary, if add a class
+        key with class name of the object and if updated_at and
+        created_at are converted to string object in ISO format.'''
+        my_model3 = Review()
+        my_dict_model3 = my_model3.to_dict()
+        self.assertIsInstance(my_dict_model3, dict)
+        for key, value in my_dict_model3.items():
+            flag = 0
+            if my_dict_model3['__class__'] == 'Review':
+                flag += 1
+            self.assertTrue(flag == 1)
+        for key, value in my_dict_model3.items():
+            if key == 'created_at':
+                self.assertIsInstance(value, str)
+            if key == 'updated_at':
+                self.assertIsInstance(value, str)
 
-    def test_to_dict__class__key(self):
-        """Testing dictionary class and key"""
 
-        obj = Review()
-        self.assertTrue("__class__" in obj.to_dict())
-
-    def test_to_dict__iso_format(self):
-        """Testing dictionary holds iso format or not"""
-
-        obj = Review()
-        dic = obj.to_dict()
-        created_at = dic.get("created_at")
-        self.assertTrue("datetime" not in created_at)
-
-    def test_empty_object(self):
-        """Testing the object empty or not"""
-
-        obj = Review()
-        _id = str(obj.id)
-        objects = storage.all()
-        self.assertTrue(f"Review.{_id}" in objects)
-
-    def test_create_with_kwargs(self):
-        """ Test create empty obj, save it, create another obj1
-        from obj1 compare their id"""
-
-        obj1 = Review()
-        obj1.save()
-        obj2 = Review(**{"id": obj1.id,
-                         "created_at": obj1.created_at.isoformat(),
-                         "updated_at": obj1.updated_at.isoformat(),
-                         "Name": "Bety", "Age": 4})
-        self.assertEqual(obj2.to_dict().get("id"), obj1.id)
-        with open('file.json', encoding="utf-8") as f:
-            data = json.loads(f.read())
-            d = data.get(f"Review.{obj1.id}")
-            obj3 = Review(**d)
-            self.assertEqual(obj3.id, obj1.id)
-
-    @classmethod
-    def tearDownClass(cls):
-        """Remove a class after all test"""
-
-        os.system("rm ./file.json")
+if __name__ == '__main__':
+    unittest.main()
