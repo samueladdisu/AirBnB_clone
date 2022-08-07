@@ -1,68 +1,53 @@
 #!/usr/bin/python3
+""" FileStorage that serializes instances to a JSON file and deserializes JSON
+file to instances:
 """
-File Storage Module
-"""
+
 import json
-from json import JSONEncoder
-from json import JSONDecoder
-from datetime import datetime
-from os.path import exists
+from models.base_model import BaseModel
+from models.amenity import Amenity
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+from models.user import User
 
 
-class DateTimeEncoder(JSONEncoder):
-    """ DateTimeEncoder to encode datetime objects to json"""
+class FileStorage():
+    """ serializes instances to a JSON file and deserializes JSON"""
 
-    def default(self, o):
-        """ Default encoding """
-        if isinstance(o, (datetime, datetime.date)):
-            return o.isoformat()
-        return super().default(o)
-
-
-class DateTimeDecoder(JSONDecoder):
-    """ Custom DateTimeDecoder """
-
-    def __init__(self, **kwargs):
-        kwargs.setdefault("object_hook", self.object_hook)
-        super().__init__(**kwargs)
-
-    def object_hook(self, dict_):
-        """Try to decode a complex number."""
-        dic = {}
-        for key, value in dict_.items():
-            try:
-                dic[key] = datetime.fromisoformat(value)
-            except (ValueError, TypeError, json.decoder.JSONDecodeError):
-                dic[key] = value
-        return dic
-
-
-class FileStorage:
-    """ File Storage Objects Representation """
-    __file_path = "file.json"
-    __objects = {}
+    __file_path = "file.json"  # path to the JSON file (ex: file.json)
+    __objects = {}  # dictionary - store all objects by <class name>.id
 
     def all(self):
-        """Return all objects """
-        return FileStorage.__objects
+        """  returns the dictionary __objects """
+        return self.__objects
 
     def new(self, obj):
-        """ add new object to dictionary of objects"""
-        FileStorage.__objects[
-            f"{obj.__class__.__name__}.{obj.id}"] = obj.to_dict()
+        """ sets in __objects the obj with key <obj class name>.id """
+        '''get key of the form <obj class name>.id '''
+        key = obj.__class__.__name__ + "." + str(obj.id)
+        self.__objects[key] = obj
 
     def save(self):
-        """ save objects dictionary to json file"""
-        with open(FileStorage.__file_path, "w", encoding="utf-8") as file:
-            file.write(json.dumps(FileStorage.__objects, cls=DateTimeEncoder))
+        """serializes __objects to the JSON file (path: __file_path)"""
+
+        ''' create empty dictionary'''
+        json_object = {}
+        """ fill dictionary with elements __objects """
+        for key in self.__objects:
+            json_object[key] = self.__objects[key].to_dict()
+
+        with open(self.__file_path, 'w') as f:
+            json.dump(json_object, f)
 
     def reload(self):
-        """ Desirialize, load object from json"""
-        if exists(FileStorage.__file_path):
-            with open(FileStorage.__file_path, "r", encoding="utf-8") as file:
-                result = file.read()
-                if result:
-                    FileStorage.__objects = json.loads(
-                        result, cls=DateTimeDecoder)
-                else:
-                    FileStorage.__objects = {}
+        """ deserializes the JSON file to __objects """
+        try:
+            with open(self.__file_path, 'r', encoding="UTF8") as f:
+                # jlo = json.load(f)
+                for key, value in json.load(f).items():
+                    attri_value = eval(value["__class__"])(**value)
+                    self.__objects[key] = attri_value
+        except FileNotFoundError:
+            pass
