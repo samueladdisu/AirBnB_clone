@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 """
-The main console
+(hbnb) help
+
+Documented commands (type help <topic>):
+========================================
+EOF  help  quit
+
+(hbnb)
+(hbnb) help quit
+Quit command to exit the program
 """
 import cmd
 import sys
